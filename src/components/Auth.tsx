@@ -2,7 +2,7 @@ import { useState } from "react";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 import { LogIn, GraduationCap, ShieldCheck } from "lucide-react";
 
 export default function Auth() {
