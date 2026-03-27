@@ -1,0 +1,146 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: uid
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required)
+    //   - name: string
+    //   - role: string (admin, student)
+    //   - batchId: string
+    //   - enrolledCourses: list
+    //   - createdAt: timestamp
+    //
+    // Collection: courses
+    // Document ID: courseId
+    // Fields:
+    //   - name: string (required)
+    //   - description: string
+    //   - duration: string
+    //   - fees: number (required)
+    //
+    // Collection: batches
+    // Document ID: batchId
+    // Fields:
+    //   - courseId: string (required)
+    //   - name: string (required)
+    //   - timing: string
+    //
+    // Collection: tasks
+    // Document ID: taskId
+    // Fields:
+    //   - title: string (required)
+    //   - description: string
+    //   - batchId: string (required)
+    //   - dueDate: timestamp
+    //
+    // Collection: submissions
+    // Document ID: submissionId
+    // Fields:
+    //   - taskId: string (required)
+    //   - studentId: string (required)
+    //   - content: string
+    //   - submittedAt: timestamp
+    //   - status: string (pending, graded)
+    //   - grade: string
+    //
+    // Collection: fees
+    // Document ID: feeId
+    // Fields:
+    //   - studentId: string (required)
+    //   - amount: number (required)
+    //   - date: timestamp
+    //   - status: string (paid, pending)
+    //   - receiptUrl: string
+    //
+    // Collection: certificates
+    // Document ID: certId
+    // Fields:
+    //   - studentId: string (required)
+    //   - courseId: string (required)
+    //   - issueDate: timestamp
+    //   - pdfUrl: string
+    //
+    // Collection: notifications
+    // Document ID: notifId
+    // Fields:
+    //   - title: string (required)
+    //   - message: string (required)
+    //   - target: string (all, batchId, studentId)
+    //   - createdAt: timestamp
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "guptaronak810@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'role']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.role in ['admin', 'student'];
+    }
+
+    // Rules for each collection
+    match /users/{uid} {
+      allow read: if isAuthenticated() && (isOwner(uid) || isAdmin());
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && (isOwner(uid) || isAdmin());
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && (isOwner(uid) || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /courses/{courseId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /batches/{batchId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /tasks/{taskId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /submissions/{submissionId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.studentId) || isAdmin());
+      allow create: if isAuthenticated() && isOwner(request.resource.data.studentId);
+      allow update: if isAuthenticated() && (isOwner(resource.data.studentId) || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /fees/{feeId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.studentId) || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    match /certificates/{certId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.studentId) || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    match /notifications/{notifId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}

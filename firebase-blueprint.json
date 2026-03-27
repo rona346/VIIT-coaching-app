@@ -1,0 +1,115 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Represents a user (Admin or Student) in the system.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "student"] },
+        "batchId": { "type": "string", "description": "Reference to Batch ID (for students)" },
+        "enrolledCourses": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Represents a course offered by the institute.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "duration": { "type": "string" },
+        "fees": { "type": "number" }
+      },
+      "required": ["name", "fees"]
+    },
+    "Batch": {
+      "title": "Batch",
+      "description": "Represents a batch of students for a specific course.",
+      "type": "object",
+      "properties": {
+        "courseId": { "type": "string" },
+        "name": { "type": "string" },
+        "timing": { "type": "string" }
+      },
+      "required": ["courseId", "name"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "Represents an assignment or task for students.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "batchId": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "batchId"]
+    },
+    "Submission": {
+      "title": "Submission",
+      "description": "Represents a student's submission for a task.",
+      "type": "object",
+      "properties": {
+        "taskId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "content": { "type": "string" },
+        "submittedAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["pending", "graded"] },
+        "grade": { "type": "string" }
+      },
+      "required": ["taskId", "studentId"]
+    },
+    "FeeRecord": {
+      "title": "FeeRecord",
+      "description": "Represents a fee payment record.",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "amount": { "type": "number" },
+        "date": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["paid", "pending"] },
+        "receiptUrl": { "type": "string" }
+      },
+      "required": ["studentId", "amount", "status"]
+    },
+    "Certificate": {
+      "title": "Certificate",
+      "description": "Represents a course completion certificate.",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "courseId": { "type": "string" },
+        "issueDate": { "type": "string", "format": "date-time" },
+        "pdfUrl": { "type": "string" }
+      },
+      "required": ["studentId", "courseId"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "Represents a system announcement or notification.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "target": { "type": "string", "description": "all, batchId, or studentId" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "message", "target"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": { "schema": "User", "description": "User profiles" },
+    "/courses/{courseId}": { "schema": "Course", "description": "Course information" },
+    "/batches/{batchId}": { "schema": "Batch", "description": "Batch information" },
+    "/tasks/{taskId}": { "schema": "Task", "description": "Task assignments" },
+    "/submissions/{submissionId}": { "schema": "Submission", "description": "Student task submissions" },
+    "/fees/{feeId}": { "schema": "FeeRecord", "description": "Fee payment records" },
+    "/certificates/{certId}": { "schema": "Certificate", "description": "Issued certificates" },
+    "/notifications/{notifId}": { "schema": "Notification", "description": "Announcements" }
+  }
+}

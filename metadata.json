@@ -1,0 +1,5 @@
+{
+  "name": "VIIT Coaching Institute",
+  "description": "A comprehensive coaching management system for VIIT Coaching Institute, featuring admin and student portals, course management, fees tracking, and certificate generation.",
+  "requestFramePermissions": []
+}
