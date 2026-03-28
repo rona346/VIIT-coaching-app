@@ -15,21 +15,31 @@ export default function Auth() {
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
+
       const user = result.user;
 
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (!userDoc.exists()) {
-        // Create new user profile
-        await setDoc(doc(db, "users", user.uid), {
+      // 🔥 Check if user exists in Firestore
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      // 🔥 If not exists → create new user
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
           uid: user.uid,
-          email: user.email,
           name: user.displayName,
+          email: user.email,
           role: role,
           createdAt: new Date().toISOString(),
         });
       }
+
+      console.log("User logged in:", user);
+
+      // 👉 Next step me yaha redirect karenge
+
     } catch (err: any) {
-      setError(err.message);
+      console.error(err);
+      setError("Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -47,7 +57,9 @@ export default function Auth() {
             <GraduationCap className="w-8 h-8 text-primary" />
           </div>
           <h1 className="text-3xl font-bold text-neutral-900">VIIT Coaching</h1>
-          <p className="text-neutral-500 mt-2">Welcome back! Please sign in to continue.</p>
+          <p className="text-neutral-500 mt-2">
+            Welcome back! Please sign in to continue.
+          </p>
         </div>
 
         {error && (
@@ -63,7 +75,7 @@ export default function Auth() {
             className="w-full flex items-center justify-center gap-3 bg-white border-2 border-neutral-200 text-neutral-700 font-semibold py-3 px-6 rounded-xl hover:bg-neutral-50 transition-all active:scale-95 disabled:opacity-50"
           >
             <LogIn className="w-5 h-5" />
-            Sign in as Student
+            {loading ? "Signing in..." : "Sign in as Student"}
           </button>
 
           <div className="relative py-4">
@@ -71,7 +83,9 @@ export default function Auth() {
               <div className="w-full border-t border-neutral-200"></div>
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-neutral-400">Admin Access</span>
+              <span className="bg-white px-2 text-neutral-400">
+                Admin Access
+              </span>
             </div>
           </div>
 
@@ -81,7 +95,7 @@ export default function Auth() {
             className="w-full flex items-center justify-center gap-3 bg-neutral-900 text-white font-semibold py-3 px-6 rounded-xl hover:bg-neutral-800 transition-all active:scale-95 disabled:opacity-50"
           >
             <ShieldCheck className="w-5 h-5" />
-            Sign in as Admin
+            {loading ? "Signing in..." : "Sign in as Admin"}
           </button>
         </div>
 
